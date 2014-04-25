@@ -59,9 +59,10 @@ public class DrawingPanel extends JPanel implements MouseMotionListener, MouseWh
     private void drawFunction() {
         double yD;
         int y, x, prevY = 0;
-        for( double i = 0; i < 3 ; i += 1/length ){
-            yD = calculateY(i);
-            x = (int) (i * length);
+        for( double i = 0.0 ; ; i += 1.0 ){
+            yD = calculateY(i/length);
+            x = (int) (i);
+            //System.out.println("x="+x+"_"+i+"_"+length);
 
             // если на окраинах. нужно соединить концы
             if (Double.isNaN(yD)){
@@ -71,14 +72,19 @@ public class DrawingPanel extends JPanel implements MouseMotionListener, MouseWh
             }
 
             //поиск пиксела, в котором находится точка
-            for ( double k = (int)yD;; k += 1/length){
-                if ( yD >= k && yD < k+1/length){
-                    yD = k;
-                    break;
-                }
-            }
 
-            y = (int) (yD * length);
+                for ( double k = (int)yD;; k++ ){
+                    if ( yD >= k/length - 1/(length*2) && yD < k/length + 1/(length*2)){
+                        yD = k;
+                        break;
+                    }
+                }
+
+            y = (int) (yD);
+
+            if (x/length<1)
+                System.out.println("x="+x+" y="+y+"_"+yD+"; ");
+
             if (Math.abs(y - prevY) != 1){
                 int counter, end;
                 if ( y > prevY){
@@ -89,8 +95,11 @@ public class DrawingPanel extends JPanel implements MouseMotionListener, MouseWh
                     end = prevY;
                 }
 
-                for ( ; counter < end; counter++)
+                for ( ; counter < end/2; counter++)
                     drawAllFourPoint(x,counter);
+                for ( ; counter < end; counter++)
+                    drawAllFourPoint(x-1,counter);
+
             }
             drawAllFourPoint(x,y);
 
@@ -117,6 +126,7 @@ public class DrawingPanel extends JPanel implements MouseMotionListener, MouseWh
 
     private double calculateY(double x) {
         double y = Math.sqrt( Math.sqrt(Math.pow(parametrC, 4.0)  + 4 * x*x * parametrC*parametrC ) - x*x - parametrC*parametrC  );
+
         return y;
     }
 
@@ -196,8 +206,8 @@ public class DrawingPanel extends JPanel implements MouseMotionListener, MouseWh
         if (!scrollWheel)
             return;
         if (e.getWheelRotation() > 0)
-            length *= sclareStep;
-        else length /= sclareStep;
+            length /= sclareStep;
+        else length *= sclareStep;
         if (length < 5){
             length = 5;
             return;
@@ -209,7 +219,6 @@ public class DrawingPanel extends JPanel implements MouseMotionListener, MouseWh
 
         // приближаем
         if (e.getWheelRotation() > 0){
-            System.out.println("приближаем график");
             //  1-я четверть
             if (centerAxisX > currentX && centerAxisY < currentY){
                 centerAxisY = centerAxisY - Math.abs(centerAxisY - currentY)*sclareStep;
@@ -233,29 +242,24 @@ public class DrawingPanel extends JPanel implements MouseMotionListener, MouseWh
         }
         // отдаляем
         else {
-            System.out.println("отдаляем график");
             // с какой стороны от курсора находися центр:
             //  1-я четверть
             if (centerAxisX > currentX && centerAxisY < currentY){
-                System.out.println("    1-я");
                 centerAxisY = centerAxisY + Math.abs(centerAxisY - currentY)/sclareStep;
                 centerAxisX = centerAxisX - Math.abs(centerAxisX - currentX)/sclareStep;
             }
             //  2-я четверть
             else if (centerAxisX < currentX && centerAxisY < currentY){
-                System.out.println("    2-я"+centerAxisY+"_"+currentY+"="+centerAxisX+"_"+currentX);
                 centerAxisY = centerAxisY + Math.abs(centerAxisY - currentY)/sclareStep;
                 centerAxisX = centerAxisX + Math.abs(centerAxisX - currentX)/sclareStep;
             }
             //  3-я четверть
             else if (centerAxisX < currentX && centerAxisY > currentY){
-                System.out.println("    3-я");
                 centerAxisY = centerAxisY - Math.abs(centerAxisY - currentY)/sclareStep;
                 centerAxisX = centerAxisX + Math.abs(centerAxisX - currentX)/sclareStep;
             }
             //  4-я четверть
             else if (centerAxisX > currentX && centerAxisY > currentY){
-                System.out.println("    4-я"+centerAxisY+"_"+currentY+"="+centerAxisX+"_"+currentX);
                 centerAxisY = centerAxisY - Math.abs(centerAxisY - currentY)/sclareStep;
                 centerAxisX = centerAxisX - Math.abs(centerAxisX - currentX)/sclareStep;
             }
